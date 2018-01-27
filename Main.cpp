@@ -82,10 +82,23 @@ void other_test2() {
 	std::cout << std::endl;
 }
 
+void copy_iterator_test() {
+	filtered_container<std::vector<int>, fo>::iterator it1, it2;
+	std::vector<int> v{ 1, 2, 3 };
+	auto c = filtered(v, fo());
+	it1 = c.begin();
+	it2 = it1;
+	filtered_container<std::vector<int>, fo>::iterator it3(it2);
+
+	transformed_container<std::vector<int>, fo>::iterator jt1, jt2;
+	jt1 = jt2;
+}
+
 int main() {
 	filtered_test();
 	transformed_test();
 	ref_test();
 	other_test();
 	other_test2();
+	copy_iterator_test();
 }

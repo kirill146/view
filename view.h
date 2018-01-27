@@ -1,4 +1,5 @@
 #pragma once
+
 template <typename F>
 struct func_type {
 	typedef std::remove_reference_t<F> type;
@@ -28,13 +29,11 @@ struct filtered_container {
 		friend filtered_container;
 
 	private:
-		Container const* c;
-		Predicate const& f;
+		filtered_container const* fc;
 		typename Container::const_iterator it;
 
-		iterator(Container const* c, Predicate const& f, typename Container::const_iterator it)
-			: c(c)
-			, f(f)
+		iterator(filtered_container const* fc, typename Container::const_iterator it)
+			: fc(fc)
 			, it(it)
 		{}
 
@@ -45,7 +44,7 @@ struct filtered_container {
 
 		iterator& operator++() {
 			++it;
-			while (it != c->end() && !f(*it)) {
+			while (it != fc->c.end() && !fc->f(*it)) {
 				++it;
 			}
 			return *this;
@@ -53,7 +52,7 @@ struct filtered_container {
 
 		iterator& operator--() {
 			--it;
-			while (!f(*it)) {
+			while (!fc->f(*it)) {
 				--it;
 			}
 			return *this;
@@ -76,12 +75,12 @@ struct filtered_container {
 		}
 
 		friend bool operator==(typename filtered_container<Container, Predicate>::iterator const& a,
-			typename filtered_container<Container, Predicate>::iterator const& b) {
+							   typename filtered_container<Container, Predicate>::iterator const& b) {
 			return a.it == b.it;
 		}
 
 		friend bool operator!=(typename filtered_container<Container, Predicate>::iterator const& a,
-			typename filtered_container<Container, Predicate>::iterator const& b) {
+							   typename filtered_container<Container, Predicate>::iterator const& b) {
 			return a.it != b.it;
 		}
 	};
@@ -92,13 +91,14 @@ struct filtered_container {
 		while (it != c.end() && !f(*it)) {
 			++it;
 		}
-		return iterator(&c, f, it);
+		return iterator(this, it);
 	}
 
 	iterator end() const {
-		return iterator(&c, f, c.end());
+		return iterator(this, c.end());
 	}
 
+private:
 	Container c;
 	Predicate f;
 };
@@ -124,13 +124,11 @@ struct transformed_container {
 		friend transformed_container;
 
 	private:
-		Container const* c;
-		F const& f;
+		transformed_container const* tc;
 		typename Container::const_iterator it;
 
-		iterator(Container const* c, F const& f, typename Container::const_iterator it)
-			: c(c)
-			, f(f)
+		iterator(transformed_container const* tc, typename Container::const_iterator it)
+			: tc(tc)
 			, it(it)
 		{}
 
@@ -162,29 +160,30 @@ struct transformed_container {
 		}
 
 		value_type operator*() const {
-			return f(*it);
+			return tc->f(*it);
 		}
 
 		friend bool operator==(typename transformed_container<Container, F>::iterator const& a,
-			typename transformed_container<Container, F>::iterator const& b) {
+							   typename transformed_container<Container, F>::iterator const& b) {
 			return a.it == b.it;
 		}
 
 		friend bool operator!=(typename transformed_container<Container, F>::iterator const& a,
-			typename transformed_container<Container, F>::iterator const& b) {
+							   typename transformed_container<Container, F>::iterator const& b) {
 			return a.it != b.it;
 		}
 	};
 	typedef iterator const_iterator;
 
 	iterator begin() const {
-		return iterator(&c, f, c.begin());
+		return iterator(this, c.begin());
 	}
 
 	iterator end() const {
-		return iterator(&c, f, c.end());
+		return iterator(this, c.end());
 	}
 
+private:
 	Container c;
 	F f;
 };
@@ -223,6 +222,7 @@ struct ref_container {
 		return const_iterator(c->end());
 	}
 
+private:
 	Container* c;
 };
 
